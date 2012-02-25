@@ -31,26 +31,7 @@ struct file_operations fops = {
        release: device_release
 };			
 
-static void do_softint(struct work_struct *work);
-
 static struct input_dev *virt_ts_dev;
-static DECLARE_DELAYED_WORK(work, do_softint);
-
-static void do_softint(struct work_struct *work)
-{
-	int absx = 0, absy = 0;
-	int touched = 0;
-
-	if (touched) {
-		input_report_key(virt_ts_dev, BTN_TOUCH, 1);
-		input_report_abs(virt_ts_dev, ABS_X, absx);
-		input_report_abs(virt_ts_dev, ABS_Y, absy);
-	} else {
-		input_report_key(virt_ts_dev, BTN_TOUCH, 0);
-	}
-
-	input_sync(virt_ts_dev);
-}
 
 static int __init virt_ts_init(void)
 {
