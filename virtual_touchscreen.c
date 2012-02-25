@@ -1,4 +1,5 @@
 #include <linux/input.h>
+#include <linux/input/mt.h>
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/interrupt.h>
@@ -11,6 +12,8 @@
 #define ABS_X_MAX	1024
 #define ABS_Y_MIN	0
 #define ABS_Y_MAX	1024
+
+#define MAX_CONTACTS 10    // 10 fingers is it
 
 #define DEVICE_NAME "virtual_touchscreen"
 static int device_open(struct inode *, struct file *);
@@ -44,14 +47,16 @@ static int __init virt_ts_init(void)
 	virt_ts_dev->evbit[0] = BIT_MASK(EV_ABS) | BIT_MASK(EV_KEY);
 	virt_ts_dev->keybit[BIT_WORD(BTN_TOUCH)] = BIT_MASK(BTN_TOUCH);
 
-	input_set_abs_params(virt_ts_dev, ABS_X,
-		ABS_X_MIN, ABS_X_MAX, 0, 0);
-	input_set_abs_params(virt_ts_dev, ABS_Y,
-		ABS_Y_MIN, ABS_Y_MAX, 0, 0);
+	input_set_abs_params(virt_ts_dev, ABS_X, ABS_X_MIN, ABS_X_MAX, 0, 0);
+	input_set_abs_params(virt_ts_dev, ABS_Y, ABS_Y_MIN, ABS_Y_MAX, 0, 0);
 
 	virt_ts_dev->name = "Virtual touchscreen";
 	virt_ts_dev->phys = "virtual_ts/input0";
 
+    input_mt_init_slots(virt_ts_dev, MAX_CONTACTS);
+
+	input_set_abs_params(virt_ts_dev, ABS_MT_POSITION_X, ABS_X_MIN, ABS_X_MAX, 0, 0);
+	input_set_abs_params(virt_ts_dev, ABS_MT_POSITION_Y, ABS_Y_MIN, ABS_Y_MAX, 0, 0);
 
 	err = input_register_device(virt_ts_dev);
 	if (err)
