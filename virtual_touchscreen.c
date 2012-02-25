@@ -107,6 +107,7 @@ static ssize_t device_read(struct file *filp, char *buffer, size_t length, loff_
         "    e 0   - trigger input_mt_report_pointer_emulation\n"
         "    X num - report x for the given slot\n"
         "    Y num - report y for the given slot\n"
+        "    S 0   - sync (should be after every block of commands)\n"
         "  each command is char and int: sscanf(\"%c%d\",...)\n"
         "  <s>x and y are from 0 to 1023</s> Probe yourself range of x and y\n"
         "  Each command is terminated with '\\n'. Short writes == dropped commands.\n";
@@ -156,6 +157,10 @@ static void execute_command(char command, int arg1) {
         case 'Y':
             input_event(virt_ts_dev, EV_ABS, ABS_MT_POSITION_Y, arg1);
             break;
+
+        case 'S':
+	        input_sync(virt_ts_dev);
+            break;
         default:
             printk("<4>virtual_touchscreen: Unknown command %c with args %d\n", command, arg1);
     }
@@ -175,7 +180,6 @@ static ssize_t device_write(struct file *filp, const char *buff, size_t len, lof
         }
     }
 
-	input_sync(virt_ts_dev);
     return len;
 }
 

@@ -39,7 +39,7 @@ while (not eof STDIN) {
     unless ($type == 3) {
         if($need_mouseemu) {
             $need_mouseemu = 0;
-            print "e 0\n";
+            print "e 0\nS 0\n";
         }
     }
 
@@ -47,8 +47,8 @@ while (not eof STDIN) {
     print "X $val\n" and $need_mouseemu=1 if $code == 0x35;
     print "Y $val\n" and $need_mouseemu=1 if $code == 0x36;
 
-    print "a 0\ne 0\n" and $need_mouseemu=0 if $code == 0x30 and not $val;  # my SE Xperia X10 driver sends this
-    print "a 1\ne 0\n" and $need_mouseemu=0 if $code == 0x30 and $val;
+    print "a 0\ne 0\nS 0\n" and $need_mouseemu=0 if $code == 0x30 and not $val;  # my SE Xperia X10 driver sends this
+    print "a 1\ne 0\nS 0\n" and $need_mouseemu=0 if $code == 0x30 and $val;
 
 
 }

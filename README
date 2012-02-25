@@ -20,13 +20,14 @@ Usage: write the following commands to /dev/virtual_touchscreen:
     e 0   - trigger input_mt_report_pointer_emulation
     X num - report x for the given slot
     Y num - report y for the given slot
+    S 0   - sync (should be after every block of commands)
   each command is char and int: sscanf("%c%d",...)
   <s>x and y are from 0 to 1023</s> Probe yourself range of x and y
   Each command is terminated with '\n'. Short writes == dropped commands.
 
-1# echo 'm 200 300' > /dev/virtual_touchscreen
-1# echo 'd 0 0' > /dev/virtual_touchscreen
-1# echo 'u 0 0' > /dev/virtual_touchscreen
+1# printf 'x 200\ny 300\nS 0\n' > /dev/virtual_touchscreen
+1# printf 'd 0\nS 0\n' > /dev/virtual_touchscreen
+1# printf 'u 0\nS 0\n' > /dev/virtual_touchscreen
 
 2# hd /dev/input/event11 # or whatever udev assigns
 00000000  df 32 48 4f a6 10 02 00  03 00 00 00 c8 00 00 00  |.2HO............|
