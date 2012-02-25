@@ -84,7 +84,7 @@ static int __init virt_ts_init(void)
 	printk ("Registering the character device failed with %d\n", Major);
 	    goto fail1;
     }
-    printk ("devsysrq: Major=%d\n", Major);
+    printk ("virtual_touchscreen: Major=%d\n", Major);
 
     cl = class_create(THIS_MODULE, DEVICE_NAME);
     if (!IS_ERR(cl)) {
@@ -110,8 +110,25 @@ static int device_release(struct inode *inode, struct file *file) {
 }
 	
 static ssize_t device_read(struct file *filp, char *buffer, size_t length, loff_t *offset) {
-    printk ("<2>Reading from virtual_touchscreen device is meaningless\n");
-    return 0;
+    const char* message = 
+        "Usage: write the following commands to /dev/virtual_touchscreen:\n"
+        "    move x y\n"
+        "    down\n"
+        "    up\n";
+    const size_t msgsize = strlen(message);
+    loff_t off = *offset;
+    if (off >= msgsize) {
+        return 0;
+    }
+    if (length > msgsize - off) {
+        length = msgsize - off;
+    }
+    if (copy_to_user(buffer, message+off, length) != 0) {
+        return -EFAULT;
+    }
+
+    *offset+=length;
+    return length;
 }
 	
 static ssize_t device_write(struct file *filp, const char *buff, size_t len, loff_t *off) {
