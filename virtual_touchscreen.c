@@ -108,6 +108,7 @@ static ssize_t device_read(struct file *filp, char *buffer, size_t length, loff_
         "    X num - report x for the given slot\n"
         "    Y num - report y for the given slot\n"
         "    S 0   - sync (should be after every block of commands)\n"
+        "    also 0123456789:; - arbitrary ABS_MT_ command (see linux/input.h)\n"
         "  each command is char and int: sscanf(\"%c%d\",...)\n"
         "  <s>x and y are from 0 to 1023</s> Probe yourself range of x and y\n"
         "  Each command is terminated with '\\n'. Short writes == dropped commands.\n";
@@ -162,7 +163,11 @@ static void execute_command(char command, int arg1) {
 	        input_sync(virt_ts_dev);
             break;
         default:
-            printk("<4>virtual_touchscreen: Unknown command %c with args %d\n", command, arg1);
+            if ((command>=0x30) && (command<=0x3b)) {
+                input_event(virt_ts_dev, EV_ABS, command, arg1);
+            } else {
+                printk("<4>virtual_touchscreen: Unknown command %c with arg %d\n", command, arg1);
+            }
     }
 }
 
