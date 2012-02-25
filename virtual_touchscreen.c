@@ -98,14 +98,16 @@ static int device_release(struct inode *inode, struct file *file) {
 static ssize_t device_read(struct file *filp, char *buffer, size_t length, loff_t *offset) {
     const char* message = 
         "Usage: write the following commands to /dev/virtual_touchscreen:\n"
-        "    m x y  - move to (x, y)\n"
-        "    d 0 0  - touch down\n"
-        "    u 0 0  - touch up\n"
-        "    s slot 0 - select multitouch slot (0 to 9)\n"
-        "    a flag 0 - report if the selected slot is being touched\n"
-        "    e 0 0 - trigger input_mt_report_pointer_emulation\n"
-        "    t x y - report x and y for the given slot\n"
-        "  each command is char and 2 ints: sscanf(\"%c%d%d\",...)\n"
+        "    x num  - move to (x, ...)\n"
+        "    y num  - move to (..., y)\n"
+        "    d 0    - touch down\n"
+        "    u 0    - touch up\n"
+        "    s slot - select multitouch slot (0 to 9)\n"
+        "    a flag - report if the selected slot is being touched\n"
+        "    e 0   - trigger input_mt_report_pointer_emulation\n"
+        "    X num - report x for the given slot\n"
+        "    Y num - report y for the given slot\n"
+        "  each command is char and int: sscanf(\"%c%d\",...)\n"
         "  <s>x and y are from 0 to 1023</s> Probe yourself range of x and y\n"
         "  Each command is terminated with '\\n'. Short writes == dropped commands.\n";
     const size_t msgsize = strlen(message);
@@ -124,11 +126,13 @@ static ssize_t device_read(struct file *filp, char *buffer, size_t length, loff_
     return length;
 }
 	
-static void execute_command(char command, int arg1, int arg2) {
+static void execute_command(char command, int arg1) {
     switch(command) {
-        case 'm':
+        case 'x':
             input_report_abs(virt_ts_dev, ABS_X, arg1);
-            input_report_abs(virt_ts_dev, ABS_Y, arg2);
+            break;
+        case 'y':
+            input_report_abs(virt_ts_dev, ABS_Y, arg1);
             break;
         case 'd':
             input_report_key(virt_ts_dev, BTN_TOUCH, 1);
@@ -146,27 +150,28 @@ static void execute_command(char command, int arg1, int arg2) {
         case 'e':
             input_mt_report_pointer_emulation(virt_ts_dev, true);
             break;
-        case 't':
+        case 'X':
             input_event(virt_ts_dev, EV_ABS, ABS_MT_POSITION_X, arg1);
-            input_event(virt_ts_dev, EV_ABS, ABS_MT_POSITION_Y, arg2);
+            break;
+        case 'Y':
+            input_event(virt_ts_dev, EV_ABS, ABS_MT_POSITION_Y, arg1);
             break;
         default:
-            printk("<4>virtual_touchscreen: Unknown command %c with args %d %d\n", command, arg1, arg2);
+            printk("<4>virtual_touchscreen: Unknown command %c with args %d\n", command, arg1);
     }
 }
 
 static ssize_t device_write(struct file *filp, const char *buff, size_t len, loff_t *off) {
     char command;
     int arg1;
-    int arg2;
 
     int i;
     int p=0;
     for(i=0; i<len; ++i) {
         if (buff[i]=='\n') {
-            sscanf(buff+p, "%c%d%d", &command, &arg1, &arg2);
+            sscanf(buff+p, "%c%d", &command, &arg1);
             p=i+1;
-            execute_command(command, arg1, arg2);
+            execute_command(command, arg1);
         }
     }
 
