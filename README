@@ -1,0 +1,32 @@
+Simple virtual input device to testing things in Linux. Creates character device and input device.
+
+Building:
+
+"make modules M=~/src/virtual_touchscreen/"
+
+Using:
+
+1# insmod virtual_touchscreen.ko
+1# dmesg | grep virtual_touchscreen
+virtual_touchscreen: Major=250
+1# cat /dev/virtual_touchscreen
+Usage: write the following commands to /dev/virtual_touchscreen:
+    m x y  - move to (x, y)
+    d 0 0  - touch down
+    u 0 0  - touch up
+  x and y from 0 to 1023
+  Entries separated with '\n'. Short writes == dropped commands.
+
+1# echo 'm 200 300' > /dev/virtual_touchscreen
+1# echo 'd 0 0' > /dev/virtual_touchscreen
+1# echo 'u 0 0' > /dev/virtual_touchscreen
+
+2# hd /dev/input/event11 # or whatever udev assigns
+00000000  df 32 48 4f a6 10 02 00  03 00 00 00 c8 00 00 00  |.2HO............|
+00000010  df 32 48 4f ab 10 02 00  03 00 01 00 2c 01 00 00  |.2HO........,...|
+00000020  df 32 48 4f bf 10 02 00  00 00 00 00 00 00 00 00  |.2HO............|
+00000030  e3 32 48 4f af af 09 00  01 00 4a 01 01 00 00 00  |.2HO......J.....|
+00000040  e3 32 48 4f bc af 09 00  00 00 00 00 00 00 00 00  |.2HO............|
+00000050  e7 32 48 4f 3d bb 05 00  01 00 4a 01 00 00 00 00  |.2HO=.....J.....|
+00000060  e7 32 48 4f 50 bb 05 00  00 00 00 00 00 00 00 00  |.2HOP...........|
+
