@@ -112,9 +112,11 @@ static int device_release(struct inode *inode, struct file *file) {
 static ssize_t device_read(struct file *filp, char *buffer, size_t length, loff_t *offset) {
     const char* message = 
         "Usage: write the following commands to /dev/virtual_touchscreen:\n"
-        "    move x y\n"
-        "    down\n"
-        "    up\n";
+        "    m x y  - move to (x, y)\n"
+        "    d 0 0  - touch down\n"
+        "    u 0 0  - touch up\n"
+        "  x and y from 0 to 1023\n"
+        "  Entries separated with '\\n'. Short writes == dropped commands.\n";
     const size_t msgsize = strlen(message);
     loff_t off = *offset;
     if (off >= msgsize) {
@@ -131,12 +133,38 @@ static ssize_t device_read(struct file *filp, char *buffer, size_t length, loff_
     return length;
 }
 	
+static void execute_command(char command, int arg1, int arg2) {
+    switch(command) {
+        case 'm':
+            input_report_abs(virt_ts_dev, ABS_X, arg1);
+            input_report_abs(virt_ts_dev, ABS_Y, arg2);
+            break;
+        case 'd':
+            input_report_key(virt_ts_dev, BTN_TOUCH, 1);
+            break;
+        case 'u':
+            input_report_key(virt_ts_dev, BTN_TOUCH, 0);
+            break;
+        default:
+            printk("<4>virtual_touchscreen: Unknown command %c with args %d %d\n", command, arg1, arg2);
+    }
+}
+
 static ssize_t device_write(struct file *filp, const char *buff, size_t len, loff_t *off) {
-    input_report_key(virt_ts_dev, BTN_TOUCH, 1);
-    input_report_abs(virt_ts_dev, ABS_X, 0x33);
-    input_report_abs(virt_ts_dev, ABS_Y, 0x44);
-	input_sync(virt_ts_dev);
-    input_report_key(virt_ts_dev, BTN_TOUCH, 0);
+    char command;
+    int arg1;
+    int arg2;
+
+    int i;
+    int p=0;
+    for(i=0; i<len; ++i) {
+        if (buff[i]=='\n') {
+            sscanf(buff+p, "%c%d%d", &command, &arg1, &arg2);
+            p=i+1;
+            execute_command(command, arg1, arg2);
+        }
+    }
+
 	input_sync(virt_ts_dev);
     return len;
 }
