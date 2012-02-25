@@ -14,8 +14,13 @@ Usage: write the following commands to /dev/virtual_touchscreen:
     m x y  - move to (x, y)
     d 0 0  - touch down
     u 0 0  - touch up
-  x and y from 0 to 1023
-  Entries separated with '\n'. Short writes == dropped commands.
+    s slot 0 - select multitouch slot (0 to 9)
+    a flag 0 - report if the selected slot is being touched
+    e 0 0 - trigger input_mt_report_pointer_emulation
+    t x y - report x and y for the given slot
+  each command is char and 2 ints: sscanf("%c%d%d",...)
+  <s>x and y are from 0 to 1023</s> Probe yourself range of x and y
+  Each command is terminated with '\n'. Short writes == dropped commands.
 
 1# echo 'm 200 300' > /dev/virtual_touchscreen
 1# echo 'd 0 0' > /dev/virtual_touchscreen
