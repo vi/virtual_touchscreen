@@ -101,8 +101,13 @@ static ssize_t device_read(struct file *filp, char *buffer, size_t length, loff_
         "    m x y  - move to (x, y)\n"
         "    d 0 0  - touch down\n"
         "    u 0 0  - touch up\n"
-        "  x and y from 0 to 1023\n"
-        "  Entries separated with '\\n'. Short writes == dropped commands.\n";
+        "    s slot 0 - select multitouch slot (0 to 9)\n"
+        "    a flag 0 - report if the selected slot is being touched\n"
+        "    e 0 0 - trigger input_mt_report_pointer_emulation\n"
+        "    t x y - report x and y for the given slot\n"
+        "  each command is char and 2 ints: sscanf(\"%c%d%d\",...)\n"
+        "  <s>x and y are from 0 to 1023</s> Probe yourself range of x and y\n"
+        "  Each command is terminated with '\\n'. Short writes == dropped commands.\n";
     const size_t msgsize = strlen(message);
     loff_t off = *offset;
     if (off >= msgsize) {
@@ -130,6 +135,20 @@ static void execute_command(char command, int arg1, int arg2) {
             break;
         case 'u':
             input_report_key(virt_ts_dev, BTN_TOUCH, 0);
+            break;
+
+        case 's':
+            input_mt_slot(virt_ts_dev, arg1);
+            break;
+        case 'a':
+            input_mt_report_slot_state(virt_ts_dev, MT_TOOL_FINGER, arg1);
+            break;
+        case 'e':
+            input_mt_report_pointer_emulation(virt_ts_dev, true);
+            break;
+        case 't':
+            input_event(virt_ts_dev, EV_ABS, ABS_MT_POSITION_X, arg1);
+            input_event(virt_ts_dev, EV_ABS, ABS_MT_POSITION_Y, arg2);
             break;
         default:
             printk("<4>virtual_touchscreen: Unknown command %c with args %d %d\n", command, arg1, arg2);
