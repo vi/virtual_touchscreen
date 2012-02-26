@@ -11,7 +11,10 @@
      JTextField
      SwingUtilities
      JCheckBox
-     )))
+     )
+    (java.net
+     ServerSocket
+    ))(:gen-class))
 
 (def field-margins {:left 90, :top 30, :right 10, :bottom 10})
 (def unused-area {:left 10, :top 10, :width 70, :height 250})
@@ -55,22 +58,38 @@
    )
  ))
 
-(defn toucher-moved [i x y]
- (println i x y))
 
-(defn toucher-active [i flag]
- (println i flag)
- )
+(defn create-touchscreen-window [events]
+ (defn send-string! [s]
+   (locking events
+    (swap! events (fn[_] s))
+    (.notifyAll events)))
 
-(defn create-touchscreen-window []
+ (defn toucher-moved [i x y]
+  ;; Send select-slot, touch-x, touch-y, trigger-mouse-emu and sync messages
+  (send-string! (format 
+     "s %d\nX %d\nY %d\ne 0\nS 0\n"
+    i, x, y)))
+
+ (defn toucher-active [i flag]
+  ;; Send select-slot, active, touch-major-axis, trigger-mouse-emu and sync messages
+  (send-string! (format 
+    (if flag 
+     "s %d\na 1\n0 10\ne 0\nS 0\n"
+     "s %d\n0 0\na 0\ne 0\nS 0\n")
+    i)))
+
  (let [
   panel (create-painted-panel)
   frame (JFrame.)
-  checkboxes (map (fn[i] (let [c (JCheckBox.)]
+  checkboxes (map (fn[i] (let [c (JCheckBox.)   previous-value (atom false)]
     (.addChangeListener c (proxy [javax.swing.event.ChangeListener] []
      (stateChanged [e] 
-        (toucher-active i (-> c (.getModel) (.isSelected)))
-      )  
+        (let [new-value  (-> c (.getModel) (.isSelected))]
+         (when (not= new-value @previous-value)
+          (swap! previous-value not)
+          (toucher-active i new-value))
+      ))
      ))c))(range num-touchers))
   labels (map (fn[i] (let [l (JLabel. (str i))   c (nth checkboxes i)]
     (.addMouseMotionListener l (proxy [java.awt.event.MouseMotionListener] []
@@ -120,11 +139,43 @@
       (.add panel (nth labels i))
     ) (range num-touchers)))
   (.setLocationRelativeTo frame nil)
+  (.addWindowListener frame (proxy [java.awt.event.WindowAdapter] [] (windowClosing [_] (System/exit 0))))
   frame))
 
+
+
+
+
+(defn listen-the-socket [port, events]
+ (let [
+  ss (ServerSocket. port)
+  ]
+    (loop []
+     (let [
+      s  (.accept ss)
+      os (.getOutputStream s)
+      p  (java.io.PrintWriter. os)
+      ]
+      (.setTcpNoDelay s true)
+      (.start (Thread. (fn[]
+        (try 
+         (loop []
+          (locking events
+           (.wait events))
+          (.print p @events)
+          (.flush p)
+          (recur))
+        (finally (.close s) (println "fin\n")))
+     ))))
+    (recur))
+ ))
+
+
+
 (defn -main [] 
- (SwingUtilities/invokeLater (fn [](.show (create-touchscreen-window))))
- )
+ (let [events (atom "")]
+  (SwingUtilities/invokeLater (fn [](.show (create-touchscreen-window events))))
+  (listen-the-socket 9494 events)))
 
 
-;;(-main) ;; For starting as executable script
+(-main) ;; For starting as executable script
