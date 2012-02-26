@@ -39,3 +39,12 @@ Usage: write the following commands to /dev/virtual_touchscreen:
 00000050  e7 32 48 4f 3d bb 05 00  01 00 4a 01 00 00 00 00  |.2HO=.....J.....|
 00000060  e7 32 48 4f 50 bb 05 00  00 00 00 00 00 00 00 00  |.2HOP...........|
 
+There is also experimental script to read /dev/input/eventX of some real device and output data for virtual_touchscreen.
+
+There is GUI application that can also provide data for virtual touchscreen (virtual_touchscreen.clj, bundled version: http://vi-server.org/pub/virtual_touchscreen.jar )
+It listens port 9494 and provides virtual_touchscreen input for connected clients.
+
+Example:
+hostA$  java -cp clojure.jar clojure.main virtual_touchscreen.clj
+
+hostB#  nc hostA 9494 > /dev/virtual_touchscreen
