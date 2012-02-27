@@ -61,6 +61,7 @@
 
 (defn create-touchscreen-window [events]
  (def tracking-id (atom 1))
+ (def currently-pressed (atom 0))
 
  (defn send-string! [s]
    (locking events
@@ -68,18 +69,30 @@
     (.notifyAll events)))
 
  (defn toucher-moved [i x y]
-  ;; Send select-slot, touch-x, touch-y, trigger-mouse-emu and sync messages
+  ;; Send select-slot, touch-x, touch-y, x and y for mouse emulation   and sync messages
   (send-string! (format 
-     "s %d\nX %d\nY %d\ne 0\nS 0\n"
-    i, x, y)))
+     "s %d\nX %d\nY %d\nx %d\ny %d\nS 0\n"
+    i, x, y, x, y)))
 
  (defn toucher-active [i flag]
-  ;; Send select-slot, tracking-id, touch-major-axis, trigger-mouse-emu and sync messages
-  (if flag
-   (do (send-string! (format "s %d\nT %d\n0 10\ne 0\nS 0\n", i, @tracking-id))
-    (println @tracking-id)
-    (swap! tracking-id (fn[i] (if (> i 10000) 1 (inc i)))))
-   (send-string! (format "s %d\nT -1\ne 0\nS 0\n", i))))
+  ;; Send select-slot, tracking-id, touch-major-axis, pressure, trigger-mouse-emu and sync messages
+  (send-string! (if flag
+   (do (let [
+        part1 (format "s %d\nT %d\n0 10\n: 100\ne 0\n", i, @tracking-id)
+        _     (swap! tracking-id (fn[i] (if (> i 10000) 1 (inc i))))
+        part2 (if (= @currently-pressed 0)
+          "d 0\nS 0\n"
+          "S 0\n")
+        _     (swap! currently-pressed inc)
+        ] (str part1 part2)))
+   (do (let [
+        part1 (format "s %d\nT -1\n0 0\n: 0\ne 0\n", i)
+        part2 (if (= @currently-pressed 1)
+          "u 0\nS 0\n"
+          "S 0\n")
+        _ (swap! currently-pressed dec)
+       ] (str part1 part2))))))
+
 
  (let [
   panel (create-painted-panel)
