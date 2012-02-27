@@ -108,10 +108,13 @@ static ssize_t device_read(struct file *filp, char *buffer, size_t length, loff_
         "    X num - report x for the given slot\n"
         "    Y num - report y for the given slot\n"
         "    S 0   - sync (should be after every block of commands)\n"
+        "    M 0   - multitouch sync\n"
+        "    T num - tracking ID\n"
         "    also 0123456789:; - arbitrary ABS_MT_ command (see linux/input.h)\n"
         "  each command is char and int: sscanf(\"%c%d\",...)\n"
         "  <s>x and y are from 0 to 1023</s> Probe yourself range of x and y\n"
-        "  Each command is terminated with '\\n'. Short writes == dropped commands.\n";
+        "  Each command is terminated with '\\n'. Short writes == dropped commands.\n"
+        "  Read linux Documentation/input/multi-touch-protocol.txt to read about events\n";
     const size_t msgsize = strlen(message);
     loff_t off = *offset;
     if (off >= msgsize) {
@@ -161,6 +164,12 @@ static void execute_command(char command, int arg1) {
 
         case 'S':
 	        input_sync(virt_ts_dev);
+            break;
+        case 'M':
+            input_mt_sync(virt_ts_dev);
+            break;
+        case 'T':
+            input_event(virt_ts_dev, EV_ABS, ABS_MT_TRACKING_ID, arg1);
             break;
         default:
             if ((command>=0x30) && (command<=0x3b)) {
