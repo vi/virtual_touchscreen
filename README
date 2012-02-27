@@ -21,10 +21,13 @@ Usage: write the following commands to /dev/virtual_touchscreen:
     X num - report x for the given slot
     Y num - report y for the given slot
     S 0   - sync (should be after every block of commands)
+    M 0   - multitouch sync
+    T num - tracking ID
     also 0123456789:; - arbitrary ABS_MT_ command (see linux/input.h)
   each command is char and int: sscanf("%c%d",...)
   <s>x and y are from 0 to 1023</s> Probe yourself range of x and y
   Each command is terminated with '\n'. Short writes == dropped commands.
+  Read linux Documentation/input/multi-touch-protocol.txt to read about events
 
 1# printf 'x 200\ny 300\nS 0\n' > /dev/virtual_touchscreen
 1# printf 'd 0\nS 0\n' > /dev/virtual_touchscreen
