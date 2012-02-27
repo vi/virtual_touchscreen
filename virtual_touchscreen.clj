@@ -60,6 +60,8 @@
 
 
 (defn create-touchscreen-window [events]
+ (def tracking-id (atom 1))
+
  (defn send-string! [s]
    (locking events
     (swap! events (fn[_] s))
@@ -72,12 +74,12 @@
     i, x, y)))
 
  (defn toucher-active [i flag]
-  ;; Send select-slot, active, touch-major-axis, trigger-mouse-emu and sync messages
-  (send-string! (format 
-    (if flag 
-     "s %d\na 1\n0 10\ne 0\nS 0\n"
-     "s %d\n0 0\na 0\ne 0\nS 0\n")
-    i)))
+  ;; Send select-slot, tracking-id, touch-major-axis, trigger-mouse-emu and sync messages
+  (if flag
+   (do (send-string! (format "s %d\nT %d\n0 10\ne 0\nS 0\n", i, @tracking-id))
+    (println @tracking-id)
+    (swap! tracking-id (fn[i] (if (> i 10000) 1 (inc i)))))
+   (send-string! (format "s %d\nT -1\ne 0\nS 0\n", i))))
 
  (let [
   panel (create-painted-panel)
