@@ -26,6 +26,7 @@
  {:text "touchers",   :x 15, :y 35}
  {:text "Touch area (approximate)", :x 95, :y 45}
  {:text "Drag touchers into touch area to aim and check checkbox to touch.", :x 90, :y 15}
+ {:text "Connect to tcp port 9494 and feed events into /dev/virtual_touchscreen", :x 90, :y 25}
 ])
 (def num-touchers 10)
 
