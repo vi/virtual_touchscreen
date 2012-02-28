@@ -28,13 +28,25 @@ $|=1;
 
 my $need_mouseemu=0;
 
+my $relx = 0;
+my $rely = 0;
+
 while (not eof STDIN) {
     sysread STDIN, $_, 16;
     my ($sec, $usec, $type, $code, $val) = unpack "LLssl";
     #print "type=$type, code=$code, val=$val\n"
 
-    #print STDERR "This seems like a keyboard\n" and next if $type == 1;
-    print STDERR "This is relative pointing device\n" and next if $type == 2;
+    if ($type == 1) {
+        print "d 0\n" if $val;
+        print "u 0\n" unless $val;
+    }
+    if ($type == 2) {
+        # relative positioning
+        $relx += $val if $code == 0;
+        $rely += $val if $code == 1;
+        print "x $relx\ny $rely\nS 0\n";
+        next;
+    }
 
     unless ($type == 3) {
         if($need_mouseemu) {
@@ -44,6 +56,7 @@ while (not eof STDIN) {
     }
 
     print "s $val\n" if $code == 0x2f;
+    print "T $val\n" if $code == 0x39;
     print "X $val\n" and $need_mouseemu=1 if $code == 0x35;
     print "Y $val\n" and $need_mouseemu=1 if $code == 0x36;
 
