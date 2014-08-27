@@ -3,15 +3,16 @@
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/interrupt.h>
+#include <linux/uaccess.h>
 #include <asm/io.h>
 #include <asm/delay.h>
 
 #define MODNAME "virtual_touchscreen"
 
 #define ABS_X_MIN	0
-#define ABS_X_MAX	1024
+#define ABS_X_MAX	1920
 #define ABS_Y_MIN	0
-#define ABS_Y_MAX	1024
+#define ABS_Y_MAX	1080
 
 #define MAX_CONTACTS 10    // 10 fingers is it
 
@@ -44,16 +45,18 @@ static int __init virt_ts_init(void)
 	if (!virt_ts_dev)
 		return -ENOMEM;
 
-	virt_ts_dev->evbit[0] = BIT_MASK(EV_ABS) | BIT_MASK(EV_KEY);
-	virt_ts_dev->keybit[BIT_WORD(BTN_TOUCH)] = BIT_MASK(BTN_TOUCH);
+	virt_ts_dev->evbit[0] = BIT_MASK(EV_ABS);// | BIT_MASK(EV_KEY);
+	//virt_ts_dev->keybit[BIT_WORD(BTN_TOUCH)] = BIT_MASK(BTN_TOUCH);
 
 	input_set_abs_params(virt_ts_dev, ABS_X, ABS_X_MIN, ABS_X_MAX, 0, 0);
 	input_set_abs_params(virt_ts_dev, ABS_Y, ABS_Y_MIN, ABS_Y_MAX, 0, 0);
 
+	__set_bit(INPUT_PROP_DIRECT, virt_ts_dev->propbit);
+
 	virt_ts_dev->name = "Virtual touchscreen";
 	virt_ts_dev->phys = "virtual_ts/input0";
 
-    input_mt_init_slots(virt_ts_dev, MAX_CONTACTS);
+	input_mt_init_slots(virt_ts_dev, MAX_CONTACTS);
 
 	input_set_abs_params(virt_ts_dev, ABS_MT_POSITION_X, ABS_X_MIN, ABS_X_MAX, 0, 0);
 	input_set_abs_params(virt_ts_dev, ABS_MT_POSITION_Y, ABS_Y_MIN, ABS_Y_MAX, 0, 0);
@@ -62,9 +65,7 @@ static int __init virt_ts_init(void)
 	if (err)
 		goto fail1;
 
-
     /* Above is evdev part. Below is character device part */
-
     Major = register_chrdev(0, DEVICE_NAME, &fops);	
     if (Major < 0) {
 	printk ("Registering the character device failed with %d\n", Major);
@@ -77,8 +78,7 @@ static int __init virt_ts_init(void)
 	    dev = device_create(cl, NULL, MKDEV(Major,0), NULL, DEVICE_NAME);
     }
 
-
-	return 0;
+    return 0;
 
  fail1:	input_free_device(virt_ts_dev);
 	return err;
@@ -211,6 +211,6 @@ static void __exit virt_ts_exit(void)
 module_init(virt_ts_init);
 module_exit(virt_ts_exit);
 
-MODULE_AUTHOR("Vitaly Shukela, vi0oss@gmail.com");
+MODULE_AUTHOR("Original author: Vitaly Shukela, vi0oss@gmail.com. Modified, see http://www.dewmill.com/rikomagic.html");
 MODULE_DESCRIPTION("Virtual touchscreen driver");
 MODULE_LICENSE("GPL");
