@@ -53,7 +53,7 @@ static int __init virt_ts_init(void)
 	virt_ts_dev->name = "Virtual touchscreen";
 	virt_ts_dev->phys = "virtual_ts/input0";
 
-    input_mt_init_slots(virt_ts_dev, MAX_CONTACTS);
+    input_mt_init_slots(virt_ts_dev, MAX_CONTACTS, INPUT_MT_DIRECT);
 
 	input_set_abs_params(virt_ts_dev, ABS_MT_POSITION_X, ABS_X_MIN, ABS_X_MAX, 0, 0);
 	input_set_abs_params(virt_ts_dev, ABS_MT_POSITION_Y, ABS_Y_MIN, ABS_Y_MAX, 0, 0);
