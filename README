@@ -1,6 +1,6 @@
 Simple virtual input device to testing things in Linux. Creates character device and input device.
 
-Building:
+Building (from configured Linux kernel's directory):
 
 "make modules M=~/src/virtual_touchscreen/"
 
