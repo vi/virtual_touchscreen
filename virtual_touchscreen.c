@@ -5,6 +5,7 @@
 #include <linux/interrupt.h>
 #include <asm/io.h>
 #include <asm/delay.h>
+#include <asm/uaccess.h>
 
 #define MODNAME "virtual_touchscreen"
 
