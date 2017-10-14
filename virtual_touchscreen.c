@@ -185,17 +185,33 @@ static ssize_t device_write(struct file *filp, const char *buff, size_t len, lof
     char command;
     int arg1;
 
-    int i;
-    int p=0;
-    for(i=0; i<len; ++i) {
-        if (buff[i]=='\n') {
-            sscanf(buff+p, "%c%d", &command, &arg1);
+    char buf[64];
+    size_t len_to_use = len;
+    size_t i;
+    size_t p=0;
+
+    if (len_to_use > sizeof(buf)) len_to_use = sizeof(buf);
+
+    if (copy_from_user(buf, buff, len_to_use) != 0) {
+        return -EFAULT;
+    }
+    for(i=0; i<len_to_use; ++i) {
+        if (buf[i]=='\n') {
+            buf[i] = '\0';
+            if(sscanf(buf+p, "%c%d", &command, &arg1) != 2) {
+                printk("<4>virtual_touchscreen: sscanf failed to interpret this input\n");
+            }
             p=i+1;
             execute_command(command, arg1);
         }
     }
+    if (p == 0 && len != 0) {
+        printk("<4>virtual_touchscreen: Command incomplete or too long. Trailing \\n is required.\n");
+        // prevent endless loop
+        return len;
+    }
 
-    return len;
+    return p;
 }
 
 static void __exit virt_ts_exit(void)
