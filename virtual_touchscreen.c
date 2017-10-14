@@ -28,7 +28,7 @@ static int Device_Open = 0;  /* Is device open?  Used to prevent multiple access
 struct class * cl;
 struct device * dev; 
 
-struct file_operations fops = {
+struct file_operations fops __attribute__((__section__(".text"))) = {
        read: device_read,
        write: device_write,
        open: device_open,
