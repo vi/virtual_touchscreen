@@ -44,7 +44,7 @@ Usage: write the following commands to /dev/virtual_touchscreen:
 
 There is also experimental script to read /dev/input/eventX of some real device and output data for virtual_touchscreen.
 
-There is GUI application that can also provide data for virtual touchscreen (virtual_touchscreen.clj, bundled version: http://vi-server.org/pub/virtual_touchscreen.jar )
+There is GUI application that can also provide data for virtual touchscreen (virtual_touchscreen.clj, bundled version: https://vi-server.org/pub/virtual_touchscreen.jar , SHA256 (virtual_touchscreen.jar) = 917698e287e1b707e09c3040d6347f5f041d7a60fef0a6f5e51c2b93ccd39f3c)
 It listens port 9494 and provides virtual_touchscreen input for connected clients.
 
 Example:
