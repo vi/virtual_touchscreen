@@ -1,6 +1,6 @@
 Simple virtual input device to testing things in Linux. Creates character device and input device.
 
-Building (from configured Linux kernel's directory):
+Building:
 
 `make`
 
