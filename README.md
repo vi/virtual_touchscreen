@@ -10,6 +10,36 @@ Using:
 1# dmesg | grep virtual_touchscreen
 virtual_touchscreen: Major=250
 1# cat /dev/virtual_touchscreen
+=======
+# virtual_touchscreen
+
+Simple virtual input device for testing things in Linux. Creates a character device and an input device.
+
+![screenshot](screenshot.png).
+
+
+# Building
+
+## module
+
+From a configured Linux kernel's directory:
+
+    make modules M=~/src/virtual_touchscreen/
+
+## application
+
+Use run `virtual_touchscreen.clj` or just use pre-built `virtual_touchscreen.jar` from Github releases
+
+# Using
+
+
+## Some testing
+
+```
+# insmod virtual_touchscreen.ko
+# dmesg | grep virtual_touchscreen
+virtual_touchscreen: Major=250
+# cat /dev/virtual_touchscreen
 Usage: write the following commands to /dev/virtual_touchscreen:
     x num  - move to (x, ...)
     y num  - move to (..., y)
@@ -34,6 +64,15 @@ Usage: write the following commands to /dev/virtual_touchscreen:
 1# printf 'u 0\nS 0\n' > /dev/virtual_touchscreen
 
 2# hd /dev/input/event11 # or whatever udev assigns
+# printf 'x 200\ny 300\nS 0\n' > /dev/virtual_touchscreen
+# printf 'd 0\nS 0\n' > /dev/virtual_touchscreen
+# printf 'u 0\nS 0\n' > /dev/virtual_touchscreen
+```
+
+And events should flow from the newly created input device:
+
+```
+# hd /dev/input/event11 # or whatever udev assigns
 00000000  df 32 48 4f a6 10 02 00  03 00 00 00 c8 00 00 00  |.2HO............|
 00000010  df 32 48 4f ab 10 02 00  03 00 01 00 2c 01 00 00  |.2HO........,...|
 00000020  df 32 48 4f bf 10 02 00  00 00 00 00 00 00 00 00  |.2HO............|
@@ -52,3 +91,20 @@ Example:
 hostA$  java -cp clojure.jar clojure.main virtual_touchscreen.clj
 
 hostB#  nc hostA 9494 > /dev/virtual_touchscreen
+```
+
+## GUI
+
+There is a GUI application that can also provide data for virtual touchscreen: `virtual_touchscreen.clj`. ([pre-built bundled version](https://vi-server.org/pub/virtual_touchscreen.jar); SHA256=917698e287e1b707e09c3040d6347f5f041d7a60fef0a6f5e51c2b93ccd39f3c, also available on Github Releases)
+
+It listens port 9494 and provides virtual_touchscreen input for connected clients.
+
+Example:
+
+    hostA$  java -cp clojure.jar clojure.main virtual_touchscreen.clj
+
+    hostB#  nc hostA 9494 > /dev/virtual_touchscreen
+
+## Misc
+
+There is also experimental script to read `/dev/input/eventX` of some real device and output data for virtual_touchscreen. It is long unmaintained although. Maybe see forks for alternative script.
