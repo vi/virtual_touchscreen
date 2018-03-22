@@ -86,3 +86,7 @@ Example:
 ## Misc
 
 There is also experimental script to read `/dev/input/eventX` of some real device and output data for virtual_touchscreen. It is long unmaintained although. Maybe see forks for alternative script.
+
+## Licence
+
+Kernel module's licence is GPL. GUI app's license is MIT or Apache 2.0.
