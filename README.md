@@ -77,7 +77,7 @@ There is a GUI application that can also provide data for virtual touchscreen: `
 
 It listens port 9494 and provides virtual_touchscreen input for connected clients.
 
-Example:
+Example (checked with Clojure 1.3, may need updating):
 
     hostA$  java -cp clojure.jar clojure.main virtual_touchscreen.clj
 
