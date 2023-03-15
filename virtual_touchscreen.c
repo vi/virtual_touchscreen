@@ -88,12 +88,14 @@ static int __init virt_ts_init(void)
 
 static int device_open(struct inode *inode, struct file *file) {
     if (Device_Open) return -EBUSY;
+    try_module_get(THIS_MODULE);
     ++Device_Open;
     return 0;
 }
 	
 static int device_release(struct inode *inode, struct file *file) {
     --Device_Open;
+    module_put(THIS_MODULE);
     return 0;
 }
 	
